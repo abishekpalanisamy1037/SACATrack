@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ACATRACKER — Smart Academic Tracker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper:#F5F3ED;
+    --paper-dim:#EDE9DD;
+    --ink:#22314C;
+    --ink-soft:#4A5872;
+    --rule:#D9D3C1;
+    --red:#B84438;
+    --gold:#D8A63D;
+    --green:#3E7C59;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    color:var(--ink);
+  }
+  .hidden{ display:none !important; }
+  a{ color:inherit; }
+
+  /* ---------- Login / Register ---------- */
+  .auth-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .auth-box{ width:100%; max-width:400px; }
+  .auth-logo{ text-align:center; margin-bottom:26px; }
+  .auth-logo .mark{
+    width:52px;height:52px;margin:0 auto 14px;border-radius:10px;
+    background:var(--ink); display:flex; align-items:center; justify-content:center;
+    font-size:22px; color:var(--gold); font-weight:700;
+  }
+  .auth-logo .title{
+    font-family:'Lora', serif; font-weight:700; font-size:26px; letter-spacing:-0.01em;
+  }
+  .auth-logo .subtitle{ color:var(--ink-soft); font-size:13px; margin-top:4px; }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:10px;
+  }
+  .auth-card{ padding:26px; }
+
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block; font-family:'IBM Plex Mono', monospace; font-size:11px;
+    letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px;
+  }
+  .field input, .field select{
+    width:100%; border:1px solid var(--rule); border-radius:6px;
+    padding:9px 11px; font-family:'IBM Plex Sans', sans-serif; font-size:13.5px;
+    color:var(--ink); background:var(--paper); outline:none;
+  }
+  .field input:focus, .field select:focus{ border-color:var(--ink); }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    border:none; border-radius:7px; padding:9px 16px; font-family:'IBM Plex Sans', sans-serif;
+    font-size:13.5px; font-weight:600; cursor:pointer;
+  }
+  .btn-primary{ background:var(--ink); color:var(--paper); }
+  .btn-primary:hover{ background:#1a253a; }
+  .btn-ghost{
+    background:transparent; color:var(--ink-soft); border:1px solid var(--rule); font-weight:500;
+  }
+  .btn-ghost:hover{ border-color:var(--ink); color:var(--ink); }
+  .btn-block{ width:100%; padding:11px 16px; }
+  .btn-danger-icon{ background:none; border:none; cursor:pointer; color:var(--ink-soft); }
+
+  .auth-error{ color:var(--red); font-size:12.5px; margin-top:8px; }
+  .auth-switch{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:16px; }
+  .auth-switch button{ background:none; border:none; color:var(--ink); font-weight:600; cursor:pointer; text-decoration:underline; padding:0; font-size:12.5px; }
+  .auth-hint{ text-align:center; font-size:11.5px; color:var(--ink-soft); margin-top:14px; }
+
+  /* ---------- App Shell ---------- */
+  .shell{ min-height:100vh; display:flex; }
+  .sidebar{
+    width:220px; flex-shrink:0; background:var(--ink); color:var(--paper);
+    display:flex; flex-direction:column; padding:22px 14px;
+  }
+  .sidebar .brand{ display:flex; align-items:center; gap:9px; padding:0 8px; margin-bottom:30px; }
+  .sidebar .brand .mark{
+    width:30px;height:30px;border-radius:7px;background:var(--gold);
+    display:flex; align-items:center; justify-content:center; color:var(--ink); font-weight:700;
+  }
+  .sidebar .brand .title{ font-family:'Lora', serif; font-weight:700; font-size:17px; }
+
+  .navlist{ display:flex; flex-direction:column; gap:3px; }
+  .navlist button{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:7px;
+    border:none; cursor:pointer; background:transparent; color:#C7CEDB; font-size:13.5px;
+    font-weight:500; font-family:'IBM Plex Sans', sans-serif; text-align:left; width:100%;
+  }
+  .navlist button.active{ background:rgba(216,166,61,0.16); color:var(--gold); font-weight:600; }
+  .navlist button .ic{ font-size:15px; width:18px; text-align:center; }
+
+  .sidebar-foot{ margin-top:auto; padding-top:20px; border-top:1px solid rgba(255,255,255,0.12); }
+  .miniprofile{ display:flex; align-items:center; gap:9px; padding:0 8px; margin-bottom:12px; }
+  .avatar{
+    border-radius:50%; background:var(--gold); color:var(--ink); display:flex;
+    align-items:center; justify-content:center; font-family:'IBM Plex Mono', monospace; font-weight:700;
+    flex-shrink:0;
+  }
+  .miniprofile .avatar{ width:30px; height:30px; font-size:12px; }
+  .miniprofile .name{ font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .miniprofile .id{ font-size:11px; color:#9AA5BB; }
+  .logout-btn{
+    display:flex; align-items:center; gap:8px; width:100%; padding:9px 12px; border-radius:7px;
+    border:1px solid rgba(255,255,255,0.14); background:transparent; color:#C7CEDB; font-size:12.5px; cursor:pointer;
+  }
+  .logout-btn:hover{ border-color:var(--gold); color:var(--gold); }
+
+  .main{ flex:1; padding:28px 34px; max-width:1080px; }
+  .page-header{ margin-bottom:24px; }
+  .page-header .title{ font-family:'Lora', serif; font-weight:700; font-size:26px; color:var(--ink); }
+  .page-header .subtitle{ color:var(--ink-soft); font-size:13.5px; margin-top:4px; }
+  .page-top-row{ display:flex; justify-content:space-between; align-items:flex-end; }
+
+  .label{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:10px;
+  }
+
+  /* Dashboard */
+  .stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:26px; }
+  .stat-card{ padding:18px; }
+  .stat-card .ic{ font-size:18px; }
+  .stat-card .value{ font-family:'IBM Plex Mono', monospace; font-size:24px; font-weight:600; color:var(--ink); margin-top:10px; }
+  .stat-card .lbl{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+
+  .dash-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:18px; }
+  .panel{ padding:20px; }
+  .panel-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .link-btn{ background:none; border:none; color:var(--ink-soft); font-size:12px; cursor:pointer; }
+
+  .list-row{ display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--rule); }
+  .list-row:last-child{ border-bottom:none; }
+  .row-title{ font-size:13.5px; font-weight:600; color:var(--ink); }
+  .row-sub{ font-size:12px; color:var(--ink-soft); }
+  .row-badge{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:600; }
+
+  .progress-track{ background:var(--paper-dim); border-radius:999px; height:8px; overflow:hidden; }
+  .progress-fill{ height:100%; border-radius:999px; transition:width 0.3s ease; }
+
+  .goal-row{ margin-bottom:14px; }
+  .goal-row-head{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px; }
+
+  /* Assignments / Marks / Goals lists */
+  .form-card{ padding:18px; margin-bottom:20px; }
+  .form-grid{ display:grid; gap:10px; align-items:end; }
+  .form-grid.assignments{ grid-template-columns:2fr 1.4fr 1.2fr 1fr auto; }
+  .form-grid.marks{ grid-template-columns:1.4fr 1.6fr 0.8fr 0.8fr auto; }
+  .form-grid.goals{ grid-template-columns:2fr 1.2fr 1.2fr auto; }
+
+  .item-list{ padding:4px; }
+  .item-row{ display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid var(--rule); }
+  .item-row:last-child{ border-bottom:none; }
+  .item-row.done{ opacity:0.55; }
+  .check-btn{ background:none; border:none; cursor:pointer; padding:0; font-size:19px; color:var(--ink-soft); }
+  .check-btn.done{ color:var(--green); }
+  .item-row .grow{ flex:1; }
+  .item-title{ font-size:13.5px; font-weight:600; color:var(--ink); }
+  .item-title.strike{ text-decoration:line-through; }
+  .item-meta{ font-size:12px; color:var(--ink-soft); }
+  .pill{
+    font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;
+    border-radius:5px; padding:2px 7px; border:1px solid;
+  }
+  .pill.high{ color:var(--red); border-color:var(--red); }
+  .pill.medium{ color:var(--gold); border-color:var(--gold); }
+  .pill.low{ color:var(--green); border-color:var(--green); }
+  .due-mono{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft); min-width:76px; text-align:right; }
+  .due-mono.overdue{ color:var(--red); }
+  .empty-note{ padding:20px; color:var(--ink-soft); font-size:13px; }
+
+  /* Marks */
+  .marks-summary{ padding:18px; margin-bottom:20px; display:flex; align-items:center; gap:22px; }
+  .marks-summary .big{ font-family:'IBM Plex Mono', monospace; font-size:30px; font-weight:600; color:var(--ink); }
+  .marks-summary .lbl{ font-size:12px; color:var(--ink-soft); }
+  .grade-box{
+    width:46px; height:46px; border-radius:8px; border:2px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Lora', serif; font-weight:700; font-size:20px; color:var(--ink);
+  }
+  .subject-card{ padding:18px; margin-bottom:14px; }
+  .subject-card-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .subject-card-head .name{ font-family:'Lora', serif; font-weight:600; font-size:15.5px; color:var(--ink); }
+  .subject-card-head .avg{ font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--ink-soft); }
+  .mark-line{ display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-top:1px solid var(--rule); }
+  .mark-line .assessment{ font-size:13px; color:var(--ink); }
+  .mark-line .score{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--ink-soft); }
+
+  /* Goals */
+  .goals-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .goal-card{ padding:18px; }
+  .goal-card-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .goal-category{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--gold); }
+  .goal-title{ font-size:14.5px; font-weight:600; color:var(--ink); margin-top:3px; }
+  .goal-target{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; }
+  .goal-progress-wrap{ margin-top:14px; }
+  .goal-progress-head{ display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px; }
+  .goal-progress-head .val{ font-family:'IBM Plex Mono', monospace; color:var(--ink); font-weight:600; }
+  .goal-progress-head .lbl{ color:var(--ink-soft); }
+  input[type="range"]{ width:100%; margin-top:10px; accent-color:var(--ink); }
+
+  /* Profile */
+  .profile-card{ padding:24px; max-width:520px; }
+  .profile-top{ display:flex; align-items:center; gap:16px; margin-bottom:22px; }
+  .profile-top .avatar{ width:62px; height:62px; font-size:22px; }
+  .profile-name{ font-family:'Lora', serif; font-weight:700; font-size:19px; color:var(--ink); }
+  .profile-id{ font-size:12.5px; color:var(--ink-soft); }
+  .profile-view-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .profile-view-grid .val{ font-size:14px; color:var(--ink); font-weight:500; }
+
+  @media (max-width: 860px){
+    .stats-grid{ grid-template-columns:repeat(2,1fr); }
+    .dash-grid{ grid-template-columns:1fr; }
+    .goals-grid{ grid-template-columns:1fr; }
+    .form-grid.assignments, .form-grid.marks, .form-grid.goals{ grid-template-columns:1fr; }
+    .sidebar{ width:70px; }
+    .sidebar .brand .title, .navlist button span.txt, .miniprofile .name, .miniprofile .id, .logout-btn span.txt{ display:none; }
+    .main{ padding:20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN PAGE ================= -->
+<div id="loginPage" class="auth-wrap">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="mark">A</div>
+      <div class="title">ACATRACKER</div>
+      <div class="subtitle">Smart Academic Tracker — sign in to your ledger</div>
+    </div>
+    <div class="card auth-card">
+      <form id="loginForm">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="you@campus.edu" required />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required />
+        </div>
+        <div id="loginError" class="auth-error hidden"></div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">Sign in</button>
+      </form>
+      <div class="auth-switch">
+        No account yet? <button id="goToRegister">Create one</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= REGISTER PAGE ================= -->
+<div id="registerPage" class="auth-wrap hidden">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="mark">A</div>
+      <div class="title">ACATRACKER</div>
+      <div class="subtitle">Create your account</div>
+    </div>
+    <div class="card auth-card">
+      <form id="registerForm">
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" id="regName" placeholder="e.g. Ananya Rao" required />
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="regEmail" placeholder="you@campus.edu" required />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="regPassword" placeholder="At least 6 characters" required minlength="6" />
+        </div>
+        <div class="field">
+          <label>Program</label>
+          <input type="text" id="regProgram" placeholder="e.g. B.Sc. Computer Science" />
+        </div>
+        <div class="field">
+          <label>Year</label>
+          <input type="text" id="regYear" placeholder="e.g. 3rd Year" />
+        </div>
+        <div id="registerError" class="auth-error hidden"></div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">Create account</button>
+      </form>
+      <div class="auth-switch">
+        Already have an account? <button id="goToLogin">Sign in</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP SHELL ================= -->
+<div id="appShell" class="shell hidden">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="mark">A</div>
+      <div class="title">ACATRACKER</div>
+    </div>
+    <div class="navlist">
+      <button data-page="dashboard" class="active"><span class="ic">&#9679;</span><span class="txt">Dashboard</span></button>
+      <button data-page="assignments"><span class="ic">&#9776;</span><span class="txt">Assignments</span></button>
+      <button data-page="marks"><span class="ic">&#127891;</span><span class="txt">Marks</span></button>
+      <button data-page="goals"><span class="ic">&#127919;</span><span class="txt">Goals</span></button>
+      <button data-page="profile"><span class="ic">&#128100;</span><span class="txt">Profile</span></button>
+    </div>
+    <div class="sidebar-foot">
+      <div class="miniprofile">
+        <div class="avatar" id="sideAvatar">--</div>
+        <div>
+          <div class="name" id="sideName">—</div>
+          <div class="id" id="sideId">—</div>
+        </div>
+      </div>
+      <button class="logout-btn" id="logoutBtn"><span>&#8592;</span><span class="txt">Sign out</span></button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page">
+      <div class="page-header">
+        <div class="title" id="dashGreeting">Welcome back</div>
+        <div class="subtitle">Here's where things stand today.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="card stat-card"><div class="ic">&#9776;</div><div class="value" id="statPending">0</div><div class="lbl">Pending Assignments</div></div>
+        <div class="card stat-card"><div class="ic">&#127891;</div><div class="value" id="statAvg">0%</div><div class="lbl">Average Score</div></div>
+        <div class="card stat-card"><div class="ic">&#127919;</div><div class="value" id="statGoal">0%</div><div class="lbl">Goal Progress</div></div>
+        <div class="card stat-card"><div class="ic">&#8593;</div><div class="value" id="statGrade">-</div><div class="lbl">Overall Grade</div></div>
+      </div>
+      <div class="dash-grid">
+        <div class="card panel">
+          <div class="panel-head"><div class="label" style="margin:0;">Upcoming assignments</div><button class="link-btn" data-goto="assignments">View all →</button></div>
+          <div id="dashUpcoming"></div>
+        </div>
+        <div class="card panel">
+          <div class="panel-head"><div class="label" style="margin:0;">Goal progress</div><button class="link-btn" data-goto="goals">View all →</button></div>
+          <div id="dashGoals"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASSIGNMENTS -->
+    <div id="page-assignments" class="page hidden">
+      <div class="page-top-row">
+        <div class="page-header"><div class="title">Assignments</div><div class="subtitle">Track what's due and mark it off as you finish.</div></div>
+        <button class="btn btn-primary" id="toggleAssignForm" style="margin-bottom:24px;">+ Add assignment</button>
+      </div>
+      <div id="assignFormCard" class="card form-card hidden">
+        <form id="assignForm" class="form-grid assignments">
+          <div><div class="label">Title</div><input id="af_title" required /></div>
+          <div><div class="label">Subject</div><input id="af_subject" required /></div>
+          <div><div class="label">Due date</div><input type="date" id="af_due" required /></div>
+          <div><div class="label">Priority</div>
+            <select id="af_priority"><option>Low</option><option selected>Medium</option><option>High</option></select>
+          </div>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+      </div>
+      <div class="card item-list" id="assignList"></div>
+    </div>
+
+    <!-- MARKS -->
+    <div id="page-marks" class="page hidden">
+      <div class="page-top-row">
+        <div class="page-header"><div class="title">Marks</div><div class="subtitle">Log scores by subject and watch your average update.</div></div>
+        <button class="btn btn-primary" id="toggleMarkForm" style="margin-bottom:24px;">+ Add score</button>
+      </div>
+      <div class="card marks-summary">
+        <div><div class="big" id="marksOverall">0%</div><div class="lbl">Overall average</div></div>
+        <div class="grade-box" id="marksGradeBox">-</div>
+        <div style="flex:1;"><div class="progress-track"><div class="progress-fill" id="marksOverallBar" style="background:var(--green);width:0%;"></div></div></div>
+      </div>
+      <div id="markFormCard" class="card form-card hidden">
+        <form id="markForm" class="form-grid marks">
+          <div><div class="label">Subject</div><input id="mf_subject" required /></div>
+          <div><div class="label">Assessment</div><input id="mf_assessment" required /></div>
+          <div><div class="label">Score</div><input type="number" step="any" id="mf_score" required /></div>
+          <div><div class="label">Out of</div><input type="number" step="any" id="mf_max" value="100" required /></div>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+      </div>
+      <div id="marksBySubject"></div>
+    </div>
+
+    <!-- GOALS -->
+    <div id="page-goals" class="page hidden">
+      <div class="page-top-row">
+        <div class="page-header"><div class="title">Goals</div><div class="subtitle">Set targets and nudge the slider as you make progress.</div></div>
+        <button class="btn btn-primary" id="toggleGoalForm" style="margin-bottom:24px;">+ Add goal</button>
+      </div>
+      <div id="goalFormCard" class="card form-card hidden">
+        <form id="goalForm" class="form-grid goals">
+          <div><div class="label">Goal</div><input id="gf_title" required /></div>
+          <div><div class="label">Category</div>
+            <select id="gf_category"><option>Academic</option><option>Study Habit</option><option>Enrichment</option><option>Personal</option></select>
+          </div>
+          <div><div class="label">Target date</div><input type="date" id="gf_date" required /></div>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+      </div>
+      <div class="goals-grid" id="goalsGrid"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="page-profile" class="page hidden">
+      <div class="page-header"><div class="title">Profile</div><div class="subtitle">Your academic identity, at a glance.</div></div>
+      <div class="card profile-card">
+        <div class="profile-top">
+          <div class="avatar" id="profAvatar" style="border-radius:50%;">--</div>
+          <div>
+            <div class="profile-name" id="profName">—</div>
+            <div class="profile-id" id="profId">—</div>
+          </div>
+          <button class="btn btn-ghost" id="editProfileBtn" style="margin-left:auto;">Edit</button>
+        </div>
+        <div id="profileView" class="profile-view-grid">
+          <div><div class="label">Email</div><div class="val" id="pv_email">—</div></div>
+          <div><div class="label">Student ID</div><div class="val" id="pv_id">—</div></div>
+          <div><div class="label">Program</div><div class="val" id="pv_program">—</div></div>
+          <div><div class="label">Year</div><div class="val" id="pv_year">—</div></div>
+        </div>
+        <form id="profileForm" class="hidden">
+          <div class="field"><label>Full name</label><input id="pf_name" /></div>
+          <div class="field"><label>Email</label><input id="pf_email" type="email" /></div>
+          <div class="field"><label>Program</label><input id="pf_program" /></div>
+          <div class="field"><label>Year</label><input id="pf_year" /></div>
+          <div style="display:flex; gap:10px; margin-top:6px;">
+            <button type="submit" class="btn btn-primary">Save changes</button>
+            <button type="button" class="btn btn-ghost" id="cancelProfileEdit">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ACATRACKER — Smart Academic Tracker
+   Standalone HTML/CSS/JS app with real persistence via
+   localStorage. Accounts, assignments, marks and goals all
+   survive page refreshes and browser restarts.
+
+   NOTE: passwords are stored in localStorage in plain text.
+   This is fine for a personal / local single-user tool, but
+   is NOT secure for any multi-user or internet-facing deployment.
+   For that, replace the storage layer with a real backend
+   (Node/Express + a database) and hash passwords server-side.
+   ============================================================ */
+
+const DB = {
+  USERS: 'acatracker_users',
+  SESSION: 'acatracker_session',
+  dataKey: (email) => `acatracker_data_${email}`,
+};
+
+function loadUsers(){ return JSON.parse(localStorage.getItem(DB.USERS) || '[]'); }
+function saveUsers(users){ localStorage.setItem(DB.USERS, JSON.stringify(users)); }
+function loadUserData(email){
+  const raw = localStorage.getItem(DB.dataKey(email));
+  if (raw) return JSON.parse(raw);
+  const fresh = { assignments: [], marks: [], goals: [] };
+  localStorage.setItem(DB.dataKey(email), JSON.stringify(fresh));
+  return fresh;
+}
+function saveUserData(email, data){ localStorage.setItem(DB.dataKey(email), JSON.stringify(data)); }
+function getSession(){ return localStorage.getItem(DB.SESSION); }
+function setSession(email){ localStorage.setItem(DB.SESSION, email); }
+function clearSession(){ localStorage.removeItem(DB.SESSION); }
+
+let currentUser = null;   // {name,email,password,studentId,program,year}
+let currentData = null;   // {assignments, marks, goals}
+
+/* ---------------- Helpers ---------------- */
+function uid(prefix){ return prefix + Date.now() + Math.floor(Math.random()*1000); }
+function initials(name){
+  return name.split(' ').filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join('');
+}
+function letterGrade(pct){
+  if (pct>=90) return 'A';
+  if (pct>=80) return 'B';
+  if (pct>=70) return 'C';
+  if (pct>=60) return 'D';
+  return 'F';
+}
+function todayDate(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+function daysUntil(dateStr){
+  const target = new Date(dateStr+'T00:00:00');
+  return Math.round((target - todayDate()) / 86400000);
+}
+function formatDate(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+
+/* ---------------- Auth ---------------- */
+document.getElementById('goToRegister').onclick = () => {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('registerPage').classList.remove('hidden');
+};
+document.getElementById('goToLogin').onclick = () => {
+  document.getElementById('registerPage').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+};
+
+document.getElementById('registerForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const password = document.getElementById('regPassword').value;
+  const program = document.getElementById('regProgram').value.trim() || 'Undeclared';
+  const year = document.getElementById('regYear').value.trim() || '1st Year';
+  const errEl = document.getElementById('registerError');
+
+  const users = loadUsers();
+  if (users.some(u => u.email === email)){
+    errEl.textContent = 'An account with this email already exists.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const studentId = 'STU-' + Math.floor(1000 + Math.random()*9000);
+  const newUser = { name, email, password, studentId, program, year };
+  users.push(newUser);
+  saveUsers(users);
+  loadUserData(email); // initialize empty data bucket
+  errEl.classList.add('hidden');
+
+  loginAs(newUser);
+});
+
+document.getElementById('loginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+
+  const users = loadUsers();
+  const match = users.find(u => u.email === email && u.password === password);
+  if (!match){
+    errEl.textContent = 'Incorrect email or password.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
+  loginAs(match);
+});
+
+function loginAs(user){
+  currentUser = user;
+  currentData = loadUserData(user.email);
+  setSession(user.email);
+  showApp();
+}
+
+document.getElementById('logoutBtn').onclick = () => {
+  clearSession();
+  currentUser = null;
+  currentData = null;
+  document.getElementById('appShell').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('registerPage').classList.add('hidden');
+  document.getElementById('loginForm').reset();
+};
+
+function tryRestoreSession(){
+  const email = getSession();
+  if (!email) return;
+  const users = loadUsers();
+  const user = users.find(u => u.email === email);
+  if (user){
+    currentUser = user;
+    currentData = loadUserData(email);
+    showApp();
+  }
+}
+
+/* ---------------- App shell / nav ---------------- */
+function showApp(){
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('registerPage').classList.add('hidden');
+  document.getElementById('appShell').classList.remove('hidden');
+
+  document.getElementById('sideAvatar').textContent = initials(currentUser.name);
+  document.getElementById('sideName').textContent = currentUser.name;
+  document.getElementById('sideId').textContent = currentUser.studentId;
+
+  goToPage('dashboard');
+}
+
+document.querySelectorAll('.navlist button').forEach(btn => {
+  btn.addEventListener('click', () => goToPage(btn.dataset.page));
+});
+document.querySelectorAll('[data-goto]').forEach(btn => {
+  btn.addEventListener('click', () => goToPage(btn.dataset.goto));
+});
+
+function goToPage(page){
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  document.getElementById('page-' + page).classList.remove('hidden');
+  document.querySelectorAll('.navlist button').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  renderPage(page);
+}
+
+function renderPage(page){
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'assignments') renderAssignments();
+  if (page === 'marks') renderMarks();
+  if (page === 'goals') renderGoals();
+  if (page === 'profile') renderProfile();
+}
+
+function persist(){ saveUserData(currentUser.email, currentData); }
+
+/* ---------------- Dashboard ---------------- */
+function renderDashboard(){
+  document.getElementById('dashGreeting').textContent = 'Welcome back, ' + currentUser.name.split(' ')[0];
+
+  const assignments = currentData.assignments;
+  const marks = currentData.marks;
+  const goals = currentData.goals;
+
+  const pending = assignments.filter(a => a.status === 'pending');
+  document.getElementById('statPending').textContent = pending.length;
+
+  const avgPct = marks.length
+    ? Math.round(marks.reduce((s,m)=> s + (m.score/m.maxScore)*100, 0) / marks.length)
+    : 0;
+  document.getElementById('statAvg').textContent = avgPct + '%';
+  document.getElementById('statGrade').textContent = marks.length ? letterGrade(avgPct) : '-';
+
+  const avgGoal = goals.length ? Math.round(goals.reduce((s,g)=>s+g.progress,0)/goals.length) : 0;
+  document.getElementById('statGoal').textContent = avgGoal + '%';
+
+  const upcoming = [...pending].sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate)).slice(0,4);
+  const upcomingEl = document.getElementById('dashUpcoming');
+  if (upcoming.length === 0){
+    upcomingEl.innerHTML = "<div class=\"empty-note\" style=\"padding:0;\">Nothing pending — you're caught up.</div>";
+  } else {
+    upcomingEl.innerHTML = upcoming.map(a => {
+      const d = daysUntil(a.dueDate);
+      const overdue = d < 0;
+      const dueLabel = overdue ? Math.abs(d)+'d overdue' : (d===0 ? 'Due today' : d+'d left');
+      return `<div class="list-row">
+        <div><div class="row-title">${escapeHtml(a.title)}</div><div class="row-sub">${escapeHtml(a.subject)}</div></div>
+        <div class="row-badge" style="color:${overdue || d<=3 ? 'var(--red)' : 'var(--ink-soft)'};">${dueLabel}</div>
+      </div>`;
+    }).join('');
+  }
+
+  const goalsEl = document.getElementById('dashGoals');
+  if (goals.length === 0){
+    goalsEl.innerHTML = '<div class="empty-note" style="padding:0;">No goals yet.</div>';
+  } else {
+    goalsEl.innerHTML = goals.slice(0,4).map(g => `
+      <div class="goal-row">
+        <div class="goal-row-head"><span style="color:var(--ink); font-weight:500;">${escapeHtml(g.title)}</span><span style="color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;">${g.progress}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${g.progress}%; background:var(--gold);"></div></div>
+      </div>`).join('');
+  }
+}
+
+/* ---------------- Assignments ---------------- */
+document.getElementById('toggleAssignForm').onclick = () => {
+  const card = document.getElementById('assignFormCard');
+  card.classList.toggle('hidden');
+  document.getElementById('toggleAssignForm').textContent = card.classList.contains('hidden') ? '+ Add assignment' : '✕ Cancel';
+};
+
+document.getElementById('assignForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const title = document.getElementById('af_title').value.trim();
+  const subject = document.getElementById('af_subject').value.trim();
+  const dueDate = document.getElementById('af_due').value;
+  const priority = document.getElementById('af_priority').value;
+  if (!title || !subject || !dueDate) return;
+
+  currentData.assignments.push({ id: uid('a'), title, subject, dueDate, priority, status: 'pending' });
+  persist();
+  this.reset();
+  document.getElementById('assignFormCard').classList.add('hidden');
+  document.getElementById('toggleAssignForm').textContent = '+ Add assignment';
+  renderAssignments();
+});
+
+function renderAssignments(){
+  const listEl = document.getElementById('assignList');
+  const sorted = [...currentData.assignments].sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
+  if (sorted.length === 0){
+    listEl.innerHTML = '<div class="empty-note">No assignments yet — add your first one.</div>';
+    return;
+  }
+  listEl.innerHTML = sorted.map(a => {
+    const d = daysUntil(a.dueDate);
+    const overdue = d < 0;
+    const done = a.status === 'done';
+    const dueLabel = overdue ? Math.abs(d)+'d overdue' : d+'d left';
+    const priorityClass = a.priority.toLowerCase();
+    return `<div class="item-row ${done ? 'done' : ''}">
+      <button class="check-btn ${done?'done':''}" onclick="toggleAssignment('${a.id}')">${done ? '&#10004;' : '&#9675;'}</button>
+      <div class="grow">
+        <div class="item-title ${done?'strike':''}">${escapeHtml(a.title)}</div>
+        <div class="item-meta">${escapeHtml(a.subject)} · Due ${formatDate(a.dueDate)}</div>
+      </div>
+      <span class="pill ${priorityClass}">${a.priority}</span>
+      ${!done ? `<span class="due-mono ${overdue?'overdue':''}">${dueLabel}</span>` : '<span class="due-mono"></span>'}
+      <button class="btn-danger-icon" onclick="deleteAssignment('${a.id}')" title="Delete">&#128465;</button>
+    </div>`;
+  }).join('');
+}
+
+function toggleAssignment(id){
+  const a = currentData.assignments.find(x => x.id === id);
+  if (a){ a.status = a.status === 'pending' ? 'done' : 'pending'; persist(); renderAssignments(); }
+}
+function deleteAssignment(id){
+  currentData.assignments = currentData.assignments.filter(x => x.id !== id);
+  persist(); renderAssignments();
+}
+
+/* ---------------- Marks ---------------- */
+document.getElementById('toggleMarkForm').onclick = () => {
+  const card = document.getElementById('markFormCard');
+  card.classList.toggle('hidden');
+  document.getElementById('toggleMarkForm').textContent = card.classList.contains('hidden') ? '+ Add score' : '✕ Cancel';
+};
+
+document.getElementById('markForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const subject = document.getElementById('mf_subject').value.trim();
+  const assessment = document.getElementById('mf_assessment').value.trim();
+  const score = parseFloat(document.getElementById('mf_score').value);
+  const maxScore = parseFloat(document.getElementById('mf_max').value);
+  if (!subject || !assessment || isNaN(score) || isNaN(maxScore) || maxScore <= 0) return;
+
+  currentData.marks.push({ id: uid('m'), subject, assessment, score, maxScore });
+  persist();
+  this.reset();
+  document.getElementById('mf_max').value = 100;
+  document.getElementById('markFormCard').classList.add('hidden');
+  document.getElementById('toggleMarkForm').textContent = '+ Add score';
+  renderMarks();
+});
+
+function renderMarks(){
+  const marks = currentData.marks;
+  const overallPct = marks.length
+    ? Math.round(marks.reduce((s,m)=> s + (m.score/m.maxScore)*100, 0) / marks.length)
+    : 0;
+  document.getElementById('marksOverall').textContent = overallPct + '%';
+  document.getElementById('marksGradeBox').textContent = marks.length ? letterGrade(overallPct) : '-';
+  document.getElementById('marksOverallBar').style.width = overallPct + '%';
+
+  const bySubject = {};
+  marks.forEach(m => { (bySubject[m.subject] ||= []).push(m); });
+
+  const container = document.getElementById('marksBySubject');
+  const subjects = Object.keys(bySubject);
+  if (subjects.length === 0){
+    container.innerHTML = '<div class="card empty-note">No scores logged yet — add your first one.</div>';
+    return;
+  }
+  container.innerHTML = subjects.map(subject => {
+    const items = bySubject[subject];
+    const subjPct = Math.round(items.reduce((s,m)=> s + (m.score/m.maxScore)*100, 0) / items.length);
+    const lines = items.map(m => `
+      <div class="mark-line">
+        <div class="assessment">${escapeHtml(m.assessment)}</div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="score">${m.score}/${m.maxScore} (${Math.round((m.score/m.maxScore)*100)}%)</div>
+          <button class="btn-danger-icon" onclick="deleteMark('${m.id}')" title="Delete">&#128465;</button>
+        </div>
+      </div>`).join('');
+    return `<div class="card subject-card">
+      <div class="subject-card-head"><div class="name">${escapeHtml(subject)}</div><div class="avg">${subjPct}% avg · ${letterGrade(subjPct)}</div></div>
+      ${lines}
+    </div>`;
+  }).join('');
+}
+
+function deleteMark(id){
+  currentData.marks = currentData.marks.filter(x => x.id !== id);
+  persist(); renderMarks();
+}
+
+/* ---------------- Goals ---------------- */
+document.getElementById('toggleGoalForm').onclick = () => {
+  const card = document.getElementById('goalFormCard');
+  card.classList.toggle('hidden');
+  document.getElementById('toggleGoalForm').textContent = card.classList.contains('hidden') ? '+ Add goal' : '✕ Cancel';
+};
+
+document.getElementById('goalForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const title = document.getElementById('gf_title').value.trim();
+  const category = document.getElementById('gf_category').value;
+  const targetDate = document.getElementById('gf_date').value;
+  if (!title || !targetDate) return;
+
+  currentData.goals.push({ id: uid('g'), title, category, targetDate, progress: 0 });
+  persist();
+  this.reset();
+  document.getElementById('goalFormCard').classList.add('hidden');
+  document.getElementById('toggleGoalForm').textContent = '+ Add goal';
+  renderGoals();
+});
+
+function renderGoals(){
+  const goals = currentData.goals;
+  const grid = document.getElementById('goalsGrid');
+  if (goals.length === 0){
+    grid.innerHTML = '<div class="card empty-note">No goals yet — set your first target.</div>';
+    return;
+  }
+  grid.innerHTML = goals.map(g => `
+    <div class="card goal-card">
+      <div class="goal-card-top">
+        <div>
+          <div class="goal-category">${escapeHtml(g.category)}</div>
+          <div class="goal-title">${escapeHtml(g.title)}</div>
+          <div class="goal-target">Target ${formatDate(g.targetDate)}</div>
+        </div>
+        <button class="btn-danger-icon" onclick="deleteGoal('${g.id}')" title="Delete">&#128465;</button>
+      </div>
+      <div class="goal-progress-wrap">
+        <div class="goal-progress-head"><span class="lbl">Progress</span><span class="val">${g.progress}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${g.progress}%; background:${g.progress>=100?'var(--green)':'var(--gold)'};"></div></div>
+        <input type="range" min="0" max="100" value="${g.progress}" oninput="updateGoalProgress('${g.id}', this.value)" />
+      </div>
+    </div>`).join('');
+}
+
+function updateGoalProgress(id, value){
+  const g = currentData.goals.find(x => x.id === id);
+  if (g){ g.progress = Number(value); persist(); renderGoals(); }
+}
+function deleteGoal(id){
+  currentData.goals = currentData.goals.filter(x => x.id !== id);
+  persist(); renderGoals();
+}
+
+/* ---------------- Profile ---------------- */
+function renderProfile(){
+  document.getElementById('profAvatar').textContent = initials(currentUser.name);
+  document.getElementById('profName').textContent = currentUser.name;
+  document.getElementById('profId').textContent = currentUser.studentId;
+  document.getElementById('pv_email').textContent = currentUser.email;
+  document.getElementById('pv_id').textContent = currentUser.studentId;
+  document.getElementById('pv_program').textContent = currentUser.program;
+  document.getElementById('pv_year').textContent = currentUser.year;
+
+  document.getElementById('profileView').classList.remove('hidden');
+  document.getElementById('profileForm').classList.add('hidden');
+  document.getElementById('editProfileBtn').classList.remove('hidden');
+}
+
+document.getElementById('editProfileBtn').onclick = () => {
+  document.getElementById('pf_name').value = currentUser.name;
+  document.getElementById('pf_email').value = currentUser.email;
+  document.getElementById('pf_program').value = currentUser.program;
+  document.getElementById('pf_year').value = currentUser.year;
+
+  document.getElementById('profileView').classList.add('hidden');
+  document.getElementById('editProfileBtn').classList.add('hidden');
+  document.getElementById('profileForm').classList.remove('hidden');
+};
+
+document.getElementById('cancelProfileEdit').onclick = () => renderProfile();
+
+document.getElementById('profileForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const newEmail = document.getElementById('pf_email').value.trim().toLowerCase();
+  const oldEmail = currentUser.email;
+
+  const users = loadUsers();
+  if (newEmail !== oldEmail && users.some(u => u.email === newEmail)){
+    alert('That email is already used by another account.');
+    return;
+  }
+
+  currentUser.name = document.getElementById('pf_name').value.trim();
+  currentUser.program = document.getElementById('pf_program').value.trim();
+  currentUser.year = document.getElementById('pf_year').value.trim();
+
+  if (newEmail !== oldEmail){
+    // migrate data bucket to the new email key
+    localStorage.setItem(DB.dataKey(newEmail), JSON.stringify(currentData));
+    localStorage.removeItem(DB.dataKey(oldEmail));
+    currentUser.email = newEmail;
+    setSession(newEmail);
+  }
+
+  const idx = users.findIndex(u => u.email === oldEmail);
+  if (idx > -1) users[idx] = currentUser;
+  saveUsers(users);
+
+  document.getElementById('sideName').textContent = currentUser.name;
+  document.getElementById('sideAvatar').textContent = initials(currentUser.name);
+  renderProfile();
+});
+
+/* ---------------- Init ---------------- */
+tryRestoreSession();
+</script>
+</body>
+</html>
